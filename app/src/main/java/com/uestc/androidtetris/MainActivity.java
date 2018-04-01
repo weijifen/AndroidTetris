@@ -20,6 +20,7 @@ import java.util.Random;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 import static com.uestc.androidtetris.R.id.maxScore;
 
@@ -43,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
     int[] qu=new int[4];
 
     Timer timer;
+    int stop = 0;
     Handler handler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
@@ -51,8 +53,10 @@ public class MainActivity extends AppCompatActivity {
 //            blockAdapter.setmDatas(blockList);
 //            blockAdapter.notifyDataSetChanged();
 //            rand=2;
+            boolean isNewTimer=true;
 
-            boolean stop = false;
+
+
 //            rand = StateFang.nextShape[rand];
 //            blockList.clear();
 //            for(int i=0;i<10;i++){
@@ -60,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
 //                    blockList.set(j*10+i, 0);
 //                }
 //            }
+            // 将正在下落的方块与停止下落的方块区别对待
             for (int i=0;i<ySize;i++) {
                 if (allBlock[i] == 0) {
                     for (int j = 0; j < xSize; j++) {
@@ -77,99 +82,95 @@ public class MainActivity extends AppCompatActivity {
 //                }
             }
 
-            for(int i=3;i>=0;i--) {
-                int line = i + position[0];
-                if (line >= 0 && StateFang.shape[rand][i] != 0) {
-                    //如果到底了，或者下面有方块
-                    if (line >= ySize-1) {
-                        stop = true;
-
-                    }else if ((allBlock[line+1] & (leftMath(StateFang.shape[rand][i] ,position[1]))) != 0) {
-
-                        stop = true;
-
+            boolean canMove = true;
+            if (msg.what == 0) {
+                //如果处于等时间间隔下落状态
+                //检测是否可以按要求移动
+                position[0]++;
+                for(int i=3;i>=0;i--) {
+                    int line = i + position[0];
+                    if (line >= 0 && StateFang.shape[rand][i] != 0) {
+                        //如果到底了，或者下面有方块
+                        if (line >= ySize ||
+                                ((allBlock[line] & (leftMath(StateFang.shape[rand][i] ,position[1]))) != 0)
+                                ) {
+                            canMove = false;
+                            break;
+                        }
                     }
-
-                    for (int j=0;j<xSize;j++) {
-                        if (((1 << j)& (leftMath(StateFang.shape[rand][i] ,position[1])))!=0) {
-                            blockList.set(line * xSize + j, randColor);
+                }
+                if (!canMove) {
+                    position[0]--;
+                    for (int i = 3; i >= 0; i--) {
+                        int line = i + position[0];
+                        if (line >= 0 && StateFang.shape[rand][i] != 0) {
+                            for (int j = 0; j < xSize; j++) {
+                                if (((1 << j) & (leftMath(StateFang.shape[rand][i], position[1]))) != 0) {
+                                    blockList.set(line * xSize + j, randColor);
+                                }
+                            }
+                        }
+                    }
+                    stopDown();
+                } else {
+                    for (int i = 3; i >= 0; i--) {
+                        int line = i + position[0];
+                        if (line >= 0 && StateFang.shape[rand][i] != 0) {
+                            for (int j = 0; j < xSize; j++) {
+                                if (((1 << j) & (leftMath(StateFang.shape[rand][i], position[1]))) != 0) {
+                                    blockList.set(line * xSize + j, randColor);
+                                }
+                            }
+                        }
+                    }
+                }
+            }else{
+                for (int i = 3; i >= 0; i--) {
+                    int line = i + position[0];
+                    if (line >= 0 && StateFang.shape[rand][i] != 0) {
+                        for (int j = 0; j < xSize; j++) {
+                            if (((1 << j) & (leftMath(StateFang.shape[rand][i], position[1]))) != 0) {
+                                blockList.set(line * xSize + j, randColor);
+                            }
                         }
                     }
                 }
             }
+//
+//            for(int i=3;i>=0;i--) {
+//                int line = i + position[0];
+//                if (line >= 0 && StateFang.shape[rand][i] != 0) {
+//                    //如果到底了，或者下面有方块
+//                    if (line >= ySize-1 ||
+//                            ((allBlock[line+1] & (leftMath(StateFang.shape[rand][i] ,position[1]))) != 0)
+//                            ) {
+//                        if (isNewTimer && msg.what == 0) {
+//                            stop++;
+//                            isNewTimer = false;
+//                        }
+//
+//                    }
+//
+//                    for (int j=0;j<xSize;j++) {
+//                        if (((1 << j)& (leftMath(StateFang.shape[rand][i] ,position[1])))!=0) {
+//                            blockList.set(line * xSize + j, randColor);
+//                        }
+//                    }
+//                }
+//            }
 
             blockAdapter.setmDatas(blockList);
             blockAdapter.notifyDataSetChanged();
 
-            if (stop) {
-//                写入、消除、重置
-
-                for(int i=3;i>=0;i--) {
-
-                    int line = i + position[0];
-                    if (line >= 0 && StateFang.shape[rand][i] != 0) {
-                        allBlock[line] += (leftMath(StateFang.shape[rand][i] ,position[1]));
-                        for (int j=0;j<xSize;j++) {
-                            if (((1 << j)& (leftMath(StateFang.shape[rand][i] ,position[1])))!=0) {
-                                blockColor[line][j] = randColor;
-                            }
-                        }
-                    }
-
-                }
-                for(int i=ySize-1;i>=0;) {
-                    if (allBlock[i] == 0x3ff) {
-                        score++;
-                        scoreTextView.setText("分数："+score);
-                        for (int j = i - 1; j >= 0; j--) {
-                            allBlock[j + 1] = allBlock[j];
-                            for(int k=0;k<xSize;k++) {
-                                blockColor[j + 1][k] = blockColor[j][k];
-                            }
-//                            System.arraycopy(blockColor[j],0,blockColor[j+1],0,xSize);
-                        }
-                        allBlock[0] = 0;
-                        for (int j=0;j<xSize;j++) {
-                            blockColor[0][j]=0;
-                        }
-                    } else {
-                        i--;
-                    }
-                }
-                if (allBlock[0] != 0) {
-                    if (score > highestScore) {
-                        cacheUtils.getValue("highestScore"+grade, score +"");
-                        highestScore = score;
-                        maxScoreTextView.setText("最高分：" + highestScore);
-                        scoreTextView.setText("分数："+score);
-
-                    }
-
-                    gameOver();
-                }
-
-//                for(int i=0;i<ySize;i++) {
-//                    if(allBlock[i] == 0x7fff){
+//            if (stop==2) {
+//                stopDown();
 //
-//                    }
-//                }
-
-//                position = new int[]{-4, 4};
-                rand = nextRand;
-                position[0] = StateFang.initPosition[rand][1];
-                position[1] = StateFang.initPosition[rand][0];
-                randColor = nextRandColor;
-
-                nextRand = random.nextInt(19);
-//                nextRand=(rand+1)%19;
-                nextRandColor = random.nextInt(5) + 1;
-                nextTetrisShow();
-                Log.i(TAG, rand + "");
-            } else {
-                if (msg.what == 0) {
-                    position[0]++;
-                }
-            }
+//                stop = 0;
+//
+//
+//            } else if (stop == 0 && msg.what == 0) {
+//                position[0]++;
+//            }
         }
     };
 
@@ -198,6 +199,7 @@ public class MainActivity extends AppCompatActivity {
         dialog.setPositiveButton("再来一局", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        stop = 0;
                         position[0] = -4;
                         position[1] = 4;
                         for (int i=0;i<ySize;i++) {
@@ -206,6 +208,14 @@ public class MainActivity extends AppCompatActivity {
                                 blockColor[i][j]=0;
                             }
                         }
+                        rand = random.nextInt(19);;
+                        position[0] = StateFang.initPosition[rand][1];
+                        position[1] = StateFang.initPosition[rand][0];
+                        randColor = random.nextInt(5) + 1;;
+
+                        nextRand = random.nextInt(19);
+//                nextRand=(rand+1)%19;
+                        nextRandColor = random.nextInt(5) + 1;
 
 
                         timer = new Timer();
@@ -302,6 +312,7 @@ public class MainActivity extends AppCompatActivity {
         levelTextView.setText("等级：" + grade);
         speedTextView.setText("速度：" +1000.0 / timeInterval);
 
+
         leftMove.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -384,6 +395,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 position[1]++;
                 handler.sendEmptyMessage(1);
+
             }
         });
         downMove.setOnClickListener(new View.OnClickListener() {
@@ -411,7 +423,7 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 } else {
                     position[0] += down;
-                    handler.sendEmptyMessage(1);
+                    handler.sendEmptyMessage(0);
                 }
             }
         });
@@ -539,5 +551,70 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         stopTimer();
+    }
+
+    void stopDown() {
+        // 写入、消除、重置
+        for(int i=3;i>=0;i--) {
+
+            int line = i + position[0];
+            if (line >= 0 && StateFang.shape[rand][i] != 0) {
+                allBlock[line] += (leftMath(StateFang.shape[rand][i] ,position[1]));
+                for (int j=0;j<xSize;j++) {
+                    if (((1 << j)& (leftMath(StateFang.shape[rand][i] ,position[1])))!=0) {
+                        blockColor[line][j] = randColor;
+                    }
+                }
+            }
+
+        }
+        for(int i=ySize-1;i>=0;) {
+            if (allBlock[i] == 0x3ff) {
+                score++;
+                scoreTextView.setText("分数："+score);
+                for (int j = i - 1; j >= 0; j--) {
+                    allBlock[j + 1] = allBlock[j];
+                    for(int k=0;k<xSize;k++) {
+                        blockColor[j + 1][k] = blockColor[j][k];
+                    }
+//                            System.arraycopy(blockColor[j],0,blockColor[j+1],0,xSize);
+                }
+                allBlock[0] = 0;
+                for (int j=0;j<xSize;j++) {
+                    blockColor[0][j]=0;
+                }
+            } else {
+                i--;
+            }
+        }
+        if (allBlock[0] != 0) {
+            if (score > highestScore) {
+                cacheUtils.getValue("highestScore"+grade, score +"");
+                highestScore = score;
+                maxScoreTextView.setText("最高分：" + highestScore);
+                scoreTextView.setText("分数："+score);
+
+            }
+
+            gameOver();
+        }
+
+//                for(int i=0;i<ySize;i++) {
+//                    if(allBlock[i] == 0x7fff){
+//
+//                    }
+//                }
+
+//                position = new int[]{-4, 4};
+        rand = nextRand;
+        position[0] = StateFang.initPosition[rand][1];
+        position[1] = StateFang.initPosition[rand][0];
+        randColor = nextRandColor;
+
+        nextRand = random.nextInt(19);
+//                nextRand=(rand+1)%19;
+        nextRandColor = random.nextInt(5) + 1;
+        nextTetrisShow();
+        Log.i(TAG, rand + "");
     }
 }

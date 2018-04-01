@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <!--android:background="@color/colorAccent"-->
+        <GridView
+            android:id="@+id/tetrisView"
+            android:background="@color/colorLine"
+
+            android:numColumns="10"
+            android:layout_width="240dp"
+            android:layout_height="360dp"
+
+            android:horizontalSpacing="0dp"
+            android:verticalSpacing="0dp">
+            <!--android:columnWidth="24dp"-->
+
+        </GridView>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <GridView
+                android:layout_gravity="center_horizontal"
+                android:id="@+id/nextTetrisView"
+                android:background="@color/colorLine"
+                android:numColumns="4"
+                android:layout_width="96dp"
+                android:layout_height="96dp">
+
+            </GridView>
+            <TextView
+                android:id="@+id/score"
+                android:textSize="10dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="分数：" />
+
+            <TextView
+                android:id="@+id/level"
+                android:textSize="10dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="等级：level " />
+
+            <TextView
+                android:id="@+id/speed"
+                android:textSize="10dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="速度：" />
+
+            <TextView
+                android:id="@+id/maxScore"
+                android:textSize="10dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="最高分：" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <Button
+            android:id="@+id/left_move"
+            android:text="左移"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content" />
+        <Button
+            android:id="@+id/rotate_move"
+            android:text="旋转"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content" />
+        <Button
+            android:id="@+id/right_move"
+            android:text="右移"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+    <Button
+        android:text="下移"
+        android:id="@+id/down_move"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+    <!--android:layout_gravity="bottom"-->
+    <Button
+
+        android:text="暂停"
+        android:id="@+id/pause"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+</LinearLayout>

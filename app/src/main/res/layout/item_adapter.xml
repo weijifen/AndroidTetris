@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--在这里设置单元格的宽高-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="24dp"
+    android:layout_height="24dp"
+    >
+    <!--android:padding="24dp"-->
+    <!--style="@drawable/round"-->
+    <ImageView
+
+        android:gravity="center"
+        android:id="@+id/adapter_image"
+        android:layout_width="23dp"
+        android:layout_height="23dp" />
+</LinearLayout>
